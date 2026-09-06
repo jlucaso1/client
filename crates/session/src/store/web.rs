@@ -156,6 +156,7 @@ pub async fn await_pending_commit() -> Result<(), String> {
     let wait = STORE.with(|cell| match cell.get() {
         Some(Backend::Relaxed(store)) => store
             .barrier(DB_FILE)
+            .map(Some)
             .map_err(|e| format!("could not queue the browser commit barrier: {e:?}")),
         Some(Backend::Durable(_)) | None => Ok(None),
     })?;
