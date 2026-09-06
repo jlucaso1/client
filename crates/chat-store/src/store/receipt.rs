@@ -62,13 +62,8 @@ pub(super) fn apply_receipt(
             // the named ids ride along so a covered row materialized later
             // stays read while an unlisted same-instant sibling still badges.
             // A stale replay changes nothing and is skipped outright.
-            let Some(state) = advance_read_state(
-                conn,
-                device_id,
-                &chat,
-                boundary_ms - 1,
-                &message_ids,
-            )?
+            let Some(state) =
+                advance_read_state(conn, device_id, &chat, boundary_ms - 1, &message_ids)?
             else {
                 // Cursor didn't move (chat re-read on another device), but a
                 // self-read still clears a manual-unread marker.
