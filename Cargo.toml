@@ -110,9 +110,9 @@ serde = { version = "1.0", default-features = false, features = ["derive"] }
 serde_json = { version = "1.0", default-features = false }
 thiserror = "2.0.19"
 tokio = { version = "1.53.1", default-features = false }
-wacore = { git = "https://github.com/oxidezap/whatsapp-rust", rev = "c5c6190280a5fd4d55fad44027c64f0d5c393b6c" }
-wacore-binary = { git = "https://github.com/oxidezap/whatsapp-rust", rev = "c5c6190280a5fd4d55fad44027c64f0d5c393b6c" }
-waproto = { git = "https://github.com/oxidezap/whatsapp-rust", rev = "c5c6190280a5fd4d55fad44027c64f0d5c393b6c" }
+wacore = { git = "https://github.com/jlucaso1/whatsapp-rust-1", rev = "c5c6190280a5fd4d55fad44027c64f0d5c393b6c" }
+wacore-binary = { git = "https://github.com/jlucaso1/whatsapp-rust-1", rev = "c5c6190280a5fd4d55fad44027c64f0d5c393b6c" }
+waproto = { git = "https://github.com/jlucaso1/whatsapp-rust-1", rev = "c5c6190280a5fd4d55fad44027c64f0d5c393b6c" }
 
 # The library and its satellites. One git source, one branch: cargo resolves
 # every entry below to the SAME commit, so `cargo update` moves them together
@@ -135,8 +135,8 @@ waproto = { git = "https://github.com/oxidezap/whatsapp-rust", rev = "c5c6190280
 # crates that need none of it. `SharedSqlite` is also not re-exported, so the
 # chat store needs sqlite-storage directly regardless.
 #
-whatsapp-rust = { git = "https://github.com/oxidezap/whatsapp-rust", rev = "c5c6190280a5fd4d55fad44027c64f0d5c393b6c", features = ["voip"] }
-whatsapp-rust-sqlite-storage = { git = "https://github.com/oxidezap/whatsapp-rust", rev = "c5c6190280a5fd4d55fad44027c64f0d5c393b6c" }
+whatsapp-rust = { git = "https://github.com/jlucaso1/whatsapp-rust-1", rev = "c5c6190280a5fd4d55fad44027c64f0d5c393b6c", features = ["voip"] }
+whatsapp-rust-sqlite-storage = { git = "https://github.com/jlucaso1/whatsapp-rust-1", rev = "c5c6190280a5fd4d55fad44027c64f0d5c393b6c" }
 
 [profile.dev]
 # Dependencies carry no debug information. Nobody here steps into diesel, and
@@ -644,7 +644,7 @@ opt-level = "z"
 opt-level = "z"
 
 [patch.crates-io]
-sqlite-wasm-vfs = { path = "/home/jlucaso/projects/sqlite-wasm-rs/.worktrees/architecture-web-durability/crates/sqlite-wasm-vfs" }
+sqlite-wasm-vfs = { git = "https://github.com/jlucaso1/sqlite-wasm-rs", rev = "76b0c873901d268d2e748678a4873bdff03a25dc" }
 
 # `tiny-skia`'s path module, which the desktop sweep names the rasterizer but
 # not this. One icon's worth of work on either target; it is here rather than
