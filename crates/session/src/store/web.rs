@@ -36,11 +36,13 @@
 //! to live in a dedicated worker.
 
 use std::cell::OnceCell;
+use std::sync::Arc;
 
 use log::info;
 use sqlite_wasm_rs::WasmOsCallback;
 use sqlite_wasm_vfs::relaxed_idb::{RelaxedIdbCfg, RelaxedIdbUtil, install};
 use sqlite_wasm_vfs::sahpool::{OpfsSAHPoolCfg, OpfsSAHPoolUtil, install as install_sahpool};
+use whatsapp_rust_sqlite_storage::{CommitBarrierHook, SqliteStoreConfig, Synchronous};
 
 use super::DB_FILE;
 
@@ -145,6 +147,33 @@ pub async fn prepare() -> Result<(), String> {
 /// disk at the moment of the write to describe.
 fn is_durable() -> bool {
     STORE.with(|cell| matches!(cell.get(), Some(Backend::Durable(_))))
+}
+
+/// Wait for the IndexedDB queue to finish every SQLite sync admitted before
+/// this call. The SQLite adapter installs this as its post-commit barrier on
+/// the relaxed backend; OPFS writes are already synchronous.
+pub async fn await_pending_commit() -> Result<(), String> {
+    let wait = STORE.with(|cell| match cell.get() {
+        Some(Backend::Relaxed(store)) => store
+            .barrier(DB_FILE)
+            .map_err(|e| format!("could not queue the browser commit barrier: {e:?}")),
+        Some(Backend::Durable(_)) | None => Ok(None),
+    })?;
+    if let Some(wait) = wait {
+        wait.await
+            .map_err(|e| format!("the browser commit barrier failed: {e:?}"))?;
+    }
+    Ok(())
+}
+
+fn commit_barrier() -> CommitBarrierHook {
+    Arc::new(|| {
+        Box::pin(async {
+            await_pending_commit()
+                .await
+                .map_err(|error| std::io::Error::other(error).into())
+        })
+    })
 }
 
 /// Ask the browser not to evict this origin.
@@ -289,10 +318,11 @@ pub fn settings() -> whatsapp_rust_sqlite_storage::SqliteStoreConfig {
         // The store's own default, which is `normal`: this backend has a disk
         // at the moment of the write, so the pragma describes something real
         // and refusing it would refuse the durability it exists for.
-        return whatsapp_rust_sqlite_storage::SqliteStoreConfig::default();
+        return SqliteStoreConfig::default();
     }
-    whatsapp_rust_sqlite_storage::SqliteStoreConfig {
-        synchronous: whatsapp_rust_sqlite_storage::Synchronous::Off,
+    SqliteStoreConfig {
+        synchronous: Synchronous::Off,
+        commit_barrier: Some(commit_barrier()),
         ..Default::default()
     }
 }
